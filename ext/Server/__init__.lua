@@ -1,6 +1,62 @@
+local playerDamage
+local currentHiddenPlayer
+local playerDamageTable = {}
 
+-- Save Damage done to Hidden in Table
+Hooks:Install('Soldier:Damage', 1, function(hook, soldier, info, giverInfo)
+	giverInfo = DamageGiverInfo(giverInfo)
+	--exclude hidden attacks, suicide ...
+	if giverInfo.giver ~= currentHiddenPlayer and giverInfo.damageType ~= DamageType.Suicide then
+		--print(DamageInfo(info).damage .. "dmg done to hidden from " .. giverInfo.giver.name)
+		for p,_ in pairs(playerDamageTable) do
+			if p == giverInfo.giver then
+				playerDamageTable[p] = playerDamageTable[p] + DamageInfo(info).damage
+				return
+			end
+		end
+		playerDamageTable[giverInfo.giver] = DamageInfo(info).damage
+	end
+end)
 
-function SpawnPlayer(player)
+function startRound()
+	if next(playerDamageTable) == nil then
+		--empty dmgTable so make Hidden random
+		playersOnServer = PlayerManager:GetPlayers()
+		currentHiddenPlayer = playersOnServer[MathUtils:GetRandomInt(1, PlayerManager:GetPlayerCount())]
+
+	else
+		local probabilityTable = {}
+		local totalDmg
+		for p, dmg in pairs(playerDamageTable) do
+			totalDmg = totalDmg + dmg
+		end
+		for p, dmg in pairs(playerDamageTable) do
+			probabilityTable[p] = dmg/totalDmg
+		end
+		currentHiddenPlayer = GetWeightedRandomKey(playerDamageTable)
+	end
+end
+
+function GetWeightedRandomKey( tab )
+	local sum = 0
+
+	for _, chance in pairs( tab ) do
+		sum = sum + chance
+	end
+
+	local select = MathUtils:GetRandom(0,1) * sum
+
+	for key, chance in pairs( tab ) do
+		select = select - chance
+		if select < 0 then return key end
+	end
+end
+
+function selectHidden()
+		local players = PlayerManager:GetPlayers()
+end
+
+function SpawnHidden(player)
 	if player == nil then
 		return
 	elseif player.soldier ~= nil then
@@ -29,11 +85,7 @@ function SpawnPlayer(player)
 
 	-- Creating soldier
 	local soldierBlueprint = ResourceManager:SearchForInstanceByGuid(Guid('261E43BF-259B-41D2-BF3B-0000DEADBEEF'))
-	--local soldierBlueprint = ResourceManager:SearchForDataContainer('Characters/Soldiers/MpSoldier')
 
-	--local bpData = SoldierEntityData(soldierBlueprint.object)
-	--print(bpData.CharacterPhysics.poses[1].height)
-	--local temp = CharacterPhysicsData(ResourceManager:FindInstanceByGuid(Guid('235CD1DA-8B06-4A7F-94BE-D50DA2D077CE'), Guid('A10FF2AA-F3CF-416B-A79B-E8C5416A9EBC')))
 
 	local transform = LinearTransform(
 		Vec3(1, 0, 0),
@@ -53,16 +105,44 @@ function SpawnPlayer(player)
 	player:SpawnSoldierAt(soldier, transform, CharacterPoseType.CharacterPoseType_Stand)
 end
 
--- The following function "Subscribes" to the Chat event so whenever a message is sent this function will be executed
+-- Debug commands
 Events:Subscribe('Player:Chat', function(player, recipientMask, message)
 	if message == '!spawn' then
-		SpawnPlayer(player)
+		SpawnHidden(player)
 	elseif message == "super" then
 		Events:Dispatch("makeSuperSoldier")
 		NetEvents:Broadcast('netMakeSuperSoldier')
+	elseif message == "heal" then
+		soldier = SoldierEntity(player.soldier)
+		soldier.health = 500
+	elseif message == "max" then
+		soldier = SoldierEntity(player.soldier)
+		soldier.maxHealth = 1000
+	elseif message == "test" then
+		soldier = SoldierEntity(player.soldier)
+		if soldier.aimingEnabled then
+			soldier.aimingEnabled = false
+		else
+			soldier.aimingEnabled = true
+		end
+	elseif message == "invis" then
+		soldier = SoldierEntity(player.soldier)
+		if soldier.forceInvisible then
+			soldier.forceInvisible = false
+		else
+			soldier.forceInvisible = true
+		end
+	elseif message == "dmgTable" then
+		local testmsg = "DamageTable: "
+		for localplayer, dmg in pairs(playerDamageTable) do
+			testmsg = testmsg .. localplayer.name .. " " .. tostring(dmg) .. "	"
+			print(testmsg)
+		end
+		ChatManager:Yell(testmsg, 4)
+	elseif message == "start" then
+		startRound()
+		ChatManager:Yell("Current hidden: " .. currentHiddenPlayer.name, 4)
+	else
+		ChatManager:Yell(message, 3)
 	end
 end)
-
-function super()
-
-end

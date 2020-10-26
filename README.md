@@ -1,13 +1,13 @@
 # hidden-gamemode
 A remake of the Source:Hidden gamemode for Battlefield 3 with Venice Unleashed.
 #### To Do's:
-- team split
+- team split, hidden selection on dmg done to hidden
 - hidden base stats (sprint speed, jump etc.)
 - hidden vision
 - hidden esp ability
 - hidden jump ability
 - hidden wall stick
-- hidden kill logic/dmg selection
+- hidden kill logic
 - hidden health scaling
 - hidden stamina
 - soldier weapon select
