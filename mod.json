@@ -1,0 +1,11 @@
+{
+	"Name": "hidden-gamemode",
+	"Authors": [ "Darkexplorer" ],
+	"Description": "Hidden gamemode.",
+	"Tags": ["hidden-gamemode"],
+	"Version": "1.0.0",
+	"HasVeniceEXT": true,
+	"Dependencies": {
+		"veniceext": "^1.0.0"
+	}
+}
