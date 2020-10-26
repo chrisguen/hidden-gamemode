@@ -1,6 +1,6 @@
-## hidden-gamemode
+# hidden-gamemode
 A remake of the Source:Hidden gamemode for Battlefield 3 with Venice Unleashed.
-# To Do's:
+#### To Do's:
 - team split
 - hidden base stats (sprint speed, jump etc.)
 - hidden vision
