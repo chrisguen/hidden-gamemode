@@ -1,4 +1,4 @@
-local suSoldier
+
 
 function SpawnPlayer(player)
 	if player == nil then
