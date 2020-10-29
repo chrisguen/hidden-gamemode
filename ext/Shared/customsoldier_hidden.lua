@@ -5,6 +5,8 @@ local customPhysicsGuid = Guid('261E43BF-259B-41D2-BF3B-0002DEADBEEF')
 local customGroundStateDataGuid = Guid('261E43BF-259B-41D2-BF3B-0003DEADBEEF')
 local customCharacterStatePoseInfoGuid = Guid('261E43BF-259B-41D2-BF3B-0004DEADBEEF')
 local customJumpStateDataGuid = Guid('261E43BF-259B-41D2-BF3B-0005DEADBEEF')
+local customInAirStateDataGuid = Guid('261E43BF-259B-41D2-BF3B-0006DEADBEEF')
+
 
 
 Events:Subscribe('Level:RegisterEntityResources', function(levelData)
@@ -55,11 +57,22 @@ Events:Subscribe('Level:RegisterEntityResources', function(levelData)
 	local customOnGroundStateData = OnGroundStateData(customCharacterPhysics.states[1]:Clone(customGroundStateDataGuid))
 	local customCharacterStatePoseInfo = CharacterStatePoseInfo(customOnGroundStateData.poseInfo[1]:Clone(customCharacterStatePoseInfoGuid))
 	local customJumpStateData = JumpStateData(customCharacterPhysics.states[2]:Clone(customJumpStateDataGuid))
+	local customInAirStateData = InAirStateData(customCharacterPhysics.states[3]:Clone(customInAirStateDataGuid))
 
 	customOnGroundStateData.poseInfo[1] = customCharacterStatePoseInfo
 	customCharacterPhysics.states[1] = customOnGroundStateData
 	customCharacterPhysics.states[2] = customJumpStateData
+	customCharacterPhysics.states[3] = customInAirStateData
+	local db = ResourceManager:FindDatabasePartition(Guid("F256E142-C9D8-4BFE-985B-3960B9E9D189"))
 
+	--[[local guids = {}
+
+	for i, v in pairs(customCharacterPhysics.states) do
+		guids[i] = MathUtils:RandomGuid()
+		customCharacterPhysics.states[i] = v:Clone(guids[i])
+		db:AddInstance(customCharacterPhysics.states[i])
+
+	end]]--
 
 	customSoldierData.characterPhysics = customCharacterPhysics
 
@@ -69,11 +82,14 @@ Events:Subscribe('Level:RegisterEntityResources', function(levelData)
 
 	-- Add our new soldier blueprint to the partition.
 	-- This will make it so we can later look it up by its GUID.
-	local db = ResourceManager:FindDatabasePartition(Guid("F256E142-C9D8-4BFE-985B-3960B9E9D189"))
 	db:AddInstance(customSoldierBp)
 	db:AddInstance(customCharacterStatePoseInfo)
 	db:AddInstance(customOnGroundStateData)
 	db:AddInstance(customJumpStateData)
+	db:AddInstance(customInAirStateData)
+	--[[for _, guid in pairs(guids) do
+		db:AddInstance()
+	end]]--
 	db:AddInstance(customCharacterPhysics)
 
 	-- In order for our custom soldier to be usable we need to register it with the engine.
@@ -89,6 +105,7 @@ Events:Subscribe('Level:RegisterEntityResources', function(levelData)
 	local customOnGroundStateData = OnGroundStateData(ResourceManager:SearchForInstanceByGuid(customGroundStateDataGuid))
 	local customCharacterStatePoseInfo = CharacterStatePoseInfo(ResourceManager:SearchForInstanceByGuid(customCharacterStatePoseInfoGuid))
 	local customJumpStateData = JumpStateData(ResourceManager:SearchForInstanceByGuid(customJumpStateDataGuid))
+	local customInAirStateData = InAirStateData(ResourceManager:SearchForInstanceByGuid(customInAirStateDataGuid))
 
 	local customCharacterPhysics = CharacterPhysicsData(ResourceManager:SearchForInstanceByGuid(customPhysicsGuid))
 
@@ -98,6 +115,11 @@ Events:Subscribe('Level:RegisterEntityResources', function(levelData)
 	registry.assetRegistry:add(customOnGroundStateData)
 	registry.assetRegistry:add(customCharacterStatePoseInfo)
 	registry.assetRegistry:add(customJumpStateData)
+	registry.assetRegistry:add(customInAirStateData)
+
+	--for _, guid in pairs(guids) do
+	--	registry.assetRegistry:add(ResourceManager:SearchForInstanceByGuid(guid))
+	--end
 
 	-- And then add the registry to the game compartment.
 	ResourceManager:AddRegistry(registry, ResourceCompartment.ResourceCompartment_Game)

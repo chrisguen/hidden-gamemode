@@ -21,37 +21,41 @@ Hooks:Install('Soldier:Damage', 1, function(hook, soldier, info, giverInfo)
     giverInfo = DamageGiverInfo(giverInfo)
 
     --exclude hidden attacks, suicide ...
-    if giverInfo.giver ~= currentHiddenPlayer and giverInfo.damageType ~= DamageType.Suicide then
+    if giverInfo.giver.name ~= currentHiddenPlayer and giverInfo.damageType ~= DamageType.Suicide then
         print(DamageInfo(info).damage .. "dmg done to hidden from " .. giverInfo.giver.name)
         if next(playerDamageTable) ~= nil then
             for p,_ in pairs(playerDamageTable) do
-                if p == giverInfo.giver then
+                if p == giverInfo.giver.name then
                     playerDamageTable[p] = playerDamageTable[p] + DamageInfo(info).damage
                     return
                 end
             end
         end
-        playerDamageTable[giverInfo.giver] = DamageInfo(info).damage
+        playerDamageTable[giverInfo.giver.name] = DamageInfo(info).damage
     end
 end)
 
 Events:Subscribe('Player:Left', function(player)
     for dmgPlayer, dmg in pairs(playerDamageTable) do
-        if dmgPlayer == player then
+        if dmgPlayer == player.name then
             playerDamageTable[player] = nil
         end
+    end
+    if player.name == currentHiddenPlayer then
+        endRound()
     end
 end)
 
 Events:Subscribe('Player:Killed', function(player, inflictor, position, weapon, isRoadKill, isHeadShot, wasVictimInReviveState, info)
-    if player == currentHiddenPlayer then
-        NetEvents:SendToLocal('removeHiddenVision', currentHiddenPlayer)
+    if player.name == currentHiddenPlayer then
+        NetEvents:SendToLocal('removeHiddenVision', PlayerManager:GetPlayerByName(currentHiddenPlayer))
+        endRound()
     end
 end)
 
 Events:Subscribe('Level:Destroy', function()
     currentHiddenPlayer = nil
-    playerDamageTable = nil
+    playerDamageTable = {}
 end)
 
 Events:Subscribe('Player:Authenticated', function(player)
@@ -61,42 +65,46 @@ Events:Subscribe('Player:Authenticated', function(player)
 end)
 
 function startRound()
-    playersOnServer = PlayerManager:GetPlayers()
+    if roundstate == RoundState.PreRound then
 
-    local playerCount = 0
-    if next(playerDamageTable) == nil then
-        --empty dmgTable so make Hidden random
-        currentHiddenPlayer = playersOnServer[MathUtils:GetRandomInt(1, PlayerManager:GetPlayerCount())]
+        playersOnServer = PlayerManager:GetPlayers()
 
-    else
-        local probabilityTable = {}
-        local totalDmg = 0
-        for p, dmg in pairs(playerDamageTable) do
-            totalDmg = totalDmg + dmg
+        local playerCount = 0
+        if next(playerDamageTable) == nil then
+            --empty dmgTable so make Hidden random
+            currentHiddenPlayer = playersOnServer[MathUtils:GetRandomInt(1, PlayerManager:GetPlayerCount())].name
+
+        else
+            local probabilityTable = {}
+            local totalDmg = 0
+            for p, dmg in pairs(playerDamageTable) do
+                totalDmg = totalDmg + dmg
+            end
+            for p, dmg in pairs(playerDamageTable) do
+                probabilityTable[p] = dmg/totalDmg
+            end
+            currentHiddenPlayer = GetWeightedRandomKey(playerDamageTable)
+            PlayerManager:GetPlayerByName(currentHiddenPlayer).teamId = TeamId.Team1
         end
-        for p, dmg in pairs(playerDamageTable) do
-            probabilityTable[p] = dmg/totalDmg
+        for _, player in pairs(playersOnServer) do
+            if player.name ~= currentHiddenPlayer then
+                player.teamId = TeamId.Team2
+            end
+            playerCount = playerCount + 1
         end
-        currentHiddenPlayer = GetWeightedRandomKey(playerDamageTable)
-        currentHiddenPlayer.teamId = TeamId.Team1
+        playerDamageTable = {}
+        for _,playerx in pairs(playersOnServer) do
+            if playerx.soldier ~= nil then
+                -- The player must be dead if we want to spawn him somewhere so if he is already alive...we kill him.
+                playerx.soldier:Kill()
+            end
+        end
+        spawnHidden(PlayerManager:GetPlayerByName(currentHiddenPlayer))
+        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).maxHealth = playerCount * 150
+        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).health = playerCount * 150
+        roundstate = RoundState.Playing
+        NetEvents:SendToLocal('setHiddenVision', PlayerManager:GetPlayerByName(currentHiddenPlayer))
     end
-    for _, player in pairs(playersOnServer) do
-        if player ~= currentHiddenPlayer then
-            player.teamId = TeamId.Team2
-        end
-        playerCount = playerCount + 1
-    end
-    playerDamageTable = {}
-    spawnHidden(currentHiddenPlayer)
-    for _,playerx in pairs(playersOnServer) do
-        if playerx.soldier ~= nil then
-    -- The player must be dead if we want to spawn him somewhere so if he is already alive...we kill him.
-        playerx.soldier:Kill()
-        end
-    end
-    SoldierEntity(currentHiddenPlayer.soldier).health = playerCount * 150
-    roundstate = RoundState.Playing
-    NetEvents:SendToLocal('setHiddenVision', currentHiddenPlayer)
 end
 
 function GetWeightedRandomKey( tab )
@@ -112,6 +120,10 @@ function GetWeightedRandomKey( tab )
         select = select - chance
         if select < 0 then return key end
     end
+end
+
+function endRound()
+    roundstate = RoundState.PostRound
 end
 
 function getHiddenPlayer()

@@ -1,4 +1,5 @@
 require('hiddenselection')
+require("__shared/roundstate")
 
 function SpawnHidden(player)
 
@@ -11,6 +12,8 @@ Events:Subscribe('Player:Chat', function(player, recipientMask, message)
 	elseif message == "super" then
 		Events:DispatchLocal("makeSuperSoldier")
 		NetEvents:BroadcastLocal('netMakeSuperSoldier')
+	elseif message == "init" then
+		roundstate = RoundState.PreRound
 	elseif message == "heal" then
 		soldier = SoldierEntity(player.soldier)
 		soldier.health = 500
@@ -40,10 +43,10 @@ Events:Subscribe('Player:Chat', function(player, recipientMask, message)
 		ChatManager:Yell(testmsg, 4)
 	elseif message == "start" then
 		startRound()
-		ChatManager:Yell("Current hidden: " .. getHiddenPlayer().name, 4)
-	elseif message == "test1" then
+		ChatManager:Yell("Current hidden: " .. getHiddenPlayer(), 4)
+	elseif message == "team1" then
 		player.teamId = TeamId.Team1
-	elseif message == "test2" then
+	elseif message == "team2" then
 		player.teamId = TeamId.Team2
 	else
 		ChatManager:Yell(message, 3)
