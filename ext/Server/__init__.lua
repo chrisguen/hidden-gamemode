@@ -9,8 +9,8 @@ Events:Subscribe('Player:Chat', function(player, recipientMask, message)
 	if message == '!spawn' then
 		SpawnHidden(player)
 	elseif message == "super" then
-		Events:Dispatch("makeSuperSoldier")
-		NetEvents:Broadcast('netMakeSuperSoldier')
+		Events:DispatchLocal("makeSuperSoldier")
+		NetEvents:BroadcastLocal('netMakeSuperSoldier')
 	elseif message == "heal" then
 		soldier = SoldierEntity(player.soldier)
 		soldier.health = 500

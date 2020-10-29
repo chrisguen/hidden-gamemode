@@ -1,4 +1,4 @@
-require("roundstate")
+require("__shared/roundstate")
 local currentHiddenPlayer
 playerDamageTable = {}
 
@@ -43,13 +43,19 @@ Events:Subscribe('Player:Left', function(player)
     end
 end)
 
+Events:Subscribe('Player:Killed', function(player, inflictor, position, weapon, isRoadKill, isHeadShot, wasVictimInReviveState, info)
+    if player == currentHiddenPlayer then
+        NetEvents:SendToLocal('removeHiddenVision', currentHiddenPlayer)
+    end
+end)
+
 Events:Subscribe('Level:Destroy', function()
     currentHiddenPlayer = nil
     playerDamageTable = nil
 end)
 
 Events:Subscribe('Player:Authenticated', function(player)
-    if roundstate == roundstate.Playing then
+    if roundstate == RoundState.Playing then
         player.teamId = TeamId.Team2
     end
 end)
@@ -88,8 +94,9 @@ function startRound()
         playerx.soldier:Kill()
         end
     end
-    currentHiddenPlayer.soldier.health = playerCount * 150
+    SoldierEntity(currentHiddenPlayer.soldier).health = playerCount * 150
     roundstate = RoundState.Playing
+    NetEvents:SendToLocal('setHiddenVision', currentHiddenPlayer)
 end
 
 function GetWeightedRandomKey( tab )
