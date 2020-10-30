@@ -1,4 +1,5 @@
 require("hiddenvision")
+require("esp")
 
 NetEvents:Subscribe("netMakeSuperSoldier", function()
     Events:DispatchLocal("customEvent")

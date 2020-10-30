@@ -8,7 +8,7 @@ A remake of the Source:Hidden gamemode for Battlefield 3 with Venice Unleashed.
 - hidden esp ability [-]
 - hidden jump ability [-]
 - hidden kill logic/spec for dead [-]
-- hidden health scaling [-]
+- hidden health scaling [-/+]
 - hidden stamina [-]
 - soldier weapon select [-]
 - hidden invisibility [-]

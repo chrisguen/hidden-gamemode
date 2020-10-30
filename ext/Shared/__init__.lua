@@ -1,7 +1,7 @@
 require('__shared/customsoldier_hidden')
 
-local charPhyData = CharacterPhysicsData(ResourceManager:SearchForInstanceByGuid(Guid('261E43BF-259B-41D2-BF3B-0002DEADBEEF')))
-charPhyData:MakeWritable()
+--local charPhyData = CharacterPhysicsData(ResourceManager:SearchForInstanceByGuid(Guid('261E43BF-259B-41D2-BF3B-0002DEADBEEF')))
+--charPhyData:MakeWritable()
 
 Events:Subscribe('makeSuperSoldier', function()
     local characterStatePoseInfo = CharacterStatePoseInfo(ResourceManager:SearchForInstanceByGuid(Guid('261E43BF-259B-41D2-BF3B-0004DEADBEEF')))
