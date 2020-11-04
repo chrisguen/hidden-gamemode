@@ -101,7 +101,7 @@ function startRound()
         end
         spawnHidden(PlayerManager:GetPlayerByName(currentHiddenPlayer))
         SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).maxHealth = playerCount * 150
-        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).health = playerCount * 150
+        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).health = 10000
         roundstate = RoundState.Playing
         NetEvents:SendToLocal('setHiddenVision', PlayerManager:GetPlayerByName(currentHiddenPlayer))
     end

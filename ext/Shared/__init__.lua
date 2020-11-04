@@ -9,7 +9,7 @@ Events:Subscribe('makeSuperSoldier', function()
     characterStatePoseInfo.sprintMultiplier = 4
 
     JumpStateData(charPhyData.states[2]).jumpHeight = 5
-    charPhyData.states[1].poseInfo[2]:MakeWritable()
+    --charPhyData.states[1].poseInfo[2]:MakeWritable()
     CharacterStatePoseInfo(charPhyData.states[1].poseInfo[2]).velocity = 10
 
     local inAirStateData = InAirStateData(ResourceManager:SearchForInstanceByGuid(Guid('261E43BF-259B-41D2-BF3B-0006DEADBEEF')))

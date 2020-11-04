@@ -2,18 +2,20 @@ local espOn = false
 local maxDistance = 70
 
 Events:Subscribe('Extension:Loaded', function()
-    --WebUI:Init()
-    --WebUI:Show()
+    WebUI:Init()
+    WebUI:Show()
 end)
 
 Events:Subscribe('Client:UpdateInput', function(delta)
     if InputManager:WentKeyDown(InputDeviceKeys.IDK_J) then
-        print(PlayerManager:GetLocalPlayer().soldier.transform.trans)
+        --print(PlayerManager:GetLocalPlayer().soldier.transform.trans)
         espOn = true
+        WebUI:ExecuteJS('ShowMarker(true)')
     end
 
     if InputManager:WentKeyUp(InputDeviceKeys.IDK_J) then
         espOn = false
+        WebUI:ExecuteJS('ShowMarker(false)')
     end
 end)
 
@@ -27,23 +29,33 @@ Events:Subscribe('Engine:Update', function(delta, simulationDelta)
     localPlayer = PlayerManager:GetLocalPlayer()
 
     local coordinates = {}
+    local distances = {}
 
     for i, player in pairs(players) do
-        if localPlayer.soldier ~= nil then
+        if localPlayer.soldier ~= nil and player.soldier ~= nil then
             if localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans) < maxDistance then
                 coordinates[i] = ClientUtils:WorldToScreen(player.soldier.transform.trans)
-                print("Distance to player: " .. player.name .. " is " .. tostring(localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans)))
+                distances[i] = localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans)
+                --print("Distance to player: " .. player.name .. " is " .. tostring(localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans)))
             end
         end
     end
-    --local worldToScreen = ClientUtils:WorldToScreen(w2sMarkerPos)
 
-    if worldToScreen == nil then
+    if #coordinates <= 1 then
         return
     end
 
-    -- Update WebUI marker.
-    --WebUI:ExecuteJS('UpdateMarker('.. worldToScreen.x ..','.. worldToScreen.y..')' )
-end)
+    local data = {
+        cords = coordinates,
+        dist = distances,
+    }
 
---player.soldier.transform.trans
+    local dataJson = json.encode(data)
+
+    --print(data)
+
+    -- Update WebUI marker.
+    --WebUI:ExecuteJS('UpdateMarkers('.. dataJson .. ');')
+    WebUI:ExecuteJS('UpdateMarker('.. coordinates[2].x ..','.. coordinates[2].y.. "," .. distances[2] ..')' )
+
+end)
