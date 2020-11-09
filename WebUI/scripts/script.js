@@ -2,10 +2,17 @@
 el = document.getElementById("marker")
 
 function UpdateMarkers(json){
+	console.log(json);
 	var obj = JSON.parse(json)
-	
-	for (var i = 0; i<json.dist.length();i++) {
+
+	if (obj.dist.length() < 1) {
+		console.log("return");
+		return;
+	}
+
+	for (var i = 1; i <= json.dist.length();i++) {
 		UpdateMarker(json.cords[i].x, json.cords[i].y, json.dist[i]);
+		console.log("update");
 	}
 }
 
@@ -24,4 +31,3 @@ function UpdateMarker(x, y, dist){
 	el.style.width = dist/70 * 20 +"px";
 	el.style.height = dist/70 * 20  +"px";
 }
-

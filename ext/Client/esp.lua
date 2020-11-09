@@ -24,38 +24,40 @@ Events:Subscribe('Engine:Update', function(delta, simulationDelta)
         return
     end
 
+
+
     players = PlayerManager:GetPlayers()
     
     localPlayer = PlayerManager:GetLocalPlayer()
 
-    local coordinates = {}
-    local distances = {}
+    local screenPos = {}
 
     for i, player in pairs(players) do
         if localPlayer.soldier ~= nil and player.soldier ~= nil then
-            if localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans) < maxDistance then
-                coordinates[i] = ClientUtils:WorldToScreen(player.soldier.transform.trans)
-                distances[i] = localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans)
-                --print("Distance to player: " .. player.name .. " is " .. tostring(localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans)))
+            if localPlayer.team ~= player.team then
+                if localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans) < maxDistance then
+
+                    screenPos[i] = {
+                        x = ClientUtils:WorldToScreen(player.soldier.transform.trans).x,
+                        y = ClientUtils:WorldToScreen(player.soldier.transform.trans).y,
+                        dist = localPlayer.soldier.transform.trans:Distance(player.soldier.transform.trans)
+                    }
+                end
             end
         end
     end
 
-    if #coordinates <= 1 then
+    if #screenPos == 0 then
         return
     end
 
-    local data = {
-        cords = coordinates,
-        dist = distances,
-    }
+    print(screenPos)
 
-    local dataJson = json.encode(data)
+    local dataJson = json.encode(screenPos)
 
-    --print(data)
+    print(dataJson)
 
     -- Update WebUI marker.
-    --WebUI:ExecuteJS('UpdateMarkers('.. dataJson .. ');')
-    WebUI:ExecuteJS('UpdateMarker('.. coordinates[2].x ..','.. coordinates[2].y.. "," .. distances[2] ..')' )
+    WebUI:ExecuteJS('UpdateMarkers('.. dataJson .. ');')
 
 end)

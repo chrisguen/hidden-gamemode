@@ -16,5 +16,22 @@
 	right: 0px;
 	width: 20px;
 	height: 20px;
-	background-color: rgba(244, 66, 179,1);
+	background-color: rgba(244, 66, 179,0.5);
+}
+
+#progressbar {
+	display: block;
+	background-color: black;
+	border-radius: 13px;
+	/* (height of inner div) / 2 + padding */
+	padding: 3px;
+}
+
+#progressbar>div {
+	display: block;
+	background-color: blue;
+	width: 90%;
+	/* Adjust with JavaScript */
+	height: 10px;
+	border-radius: 10px;
 }

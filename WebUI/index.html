@@ -12,22 +12,11 @@
 
 	<script src="scripts/script.js"></script>
 
-	<script>
-		//Makes the stuff show up when you're not ingame
-		window.onload = function () {
-			if(window.location.href.indexOf("webui") == -1) {
+	<div id="progressbar">
+		<div></div>
+	</div>
 
-				document.onkeydown = getKey;
-				function getKey(e)
-				{
-					if(e.keyCode == 77) {// 'm' key
-						ShowMarker(true)
-						UpdateMarker(20, 20);
-					}
-				}
-			}
-		};
-	</script>
+
 </body> 
 
 </html>
