@@ -2,8 +2,6 @@ require("__shared/roundstate")
 local currentHiddenPlayer
 playerDamageTable = {}
 
---local result = RCON:SendCommand('vu.DesertingAllowed')
---print(result)
 
 --Dont allow Teamchanges
 Hooks:Install('Player:SelectTeam', 1, function(hook, player, team)
@@ -49,6 +47,7 @@ end)
 Events:Subscribe('Player:Killed', function(player, inflictor, position, weapon, isRoadKill, isHeadShot, wasVictimInReviveState, info)
     if player.name == currentHiddenPlayer then
         NetEvents:SendToLocal('removeHiddenVision', PlayerManager:GetPlayerByName(currentHiddenPlayer))
+        ChatManager:Yell("I.R.I.S Wins!", 5)
         endRound()
     end
 end)

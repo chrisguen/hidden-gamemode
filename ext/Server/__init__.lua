@@ -1,9 +1,26 @@
 require('hiddenselection')
 require("__shared/roundstate")
 
+
 function SpawnHidden(player)
 
 end
+
+NetEvents:Subscribe('float', function(player)
+	--player.soldier.physicsEntityBase.states[1].poseInfo[1].sprintGain = 6
+end)
+
+NetEvents:Subscribe('endFloat', function(player)
+	--player.soldier.physicsEntityBase.states[1].poseInfo[1].sprintGain = 1.7
+end)
+
+NetEvents:Subscribe('stick', function(player)
+end)
+
+NetEvents:Subscribe('unstick', function(player)
+
+end)
+
 
 -- Debug commands
 Events:Subscribe('Player:Chat', function(player, recipientMask, message)

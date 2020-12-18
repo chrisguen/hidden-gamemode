@@ -8,7 +8,6 @@ end)
 
 Events:Subscribe('Client:UpdateInput', function(delta)
     if InputManager:WentKeyDown(InputDeviceKeys.IDK_J) then
-        --print(PlayerManager:GetLocalPlayer().soldier.transform.trans)
         espOn = true
         WebUI:ExecuteJS('ShowMarker(true)')
     end

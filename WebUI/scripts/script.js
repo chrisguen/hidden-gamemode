@@ -1,5 +1,6 @@
 
 el = document.getElementById("marker")
+pb = document.getElementById("progbar")
 
 function UpdateMarkers(json){
 	console.log(json);
