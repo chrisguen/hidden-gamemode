@@ -20,6 +20,10 @@ Events:Subscribe('Player:Chat', function(player, recipientMask, message)
 		roundstate = RoundState.PreRound
 	elseif message == "restart" then
 		restartRound()
+	elseif message == "end" then
+		endRound()
+	elseif message == "rounstate" then
+		ChatManager:Yell(tostring(RoundState.roundstate),2)
 	elseif message == "heal" then
 		soldier = SoldierEntity(player.soldier)
 		soldier.health = 500
