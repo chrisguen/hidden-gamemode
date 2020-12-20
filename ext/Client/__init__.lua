@@ -1,6 +1,7 @@
 require("hiddenvision")
 require("esp")
 require("wallstickraycast")
+IngameSpectator = require(ingame-spectator)
 
 NetEvents:Subscribe("netMakeSuperSoldier", function()
     Events:DispatchLocal("customEvent")
@@ -14,25 +15,31 @@ NetEvents:Subscribe("removeHiddenVision", function()
     removeHiddenVision()
 end)
 
-Console:Register('stick', 'SetSpectating true or false', function(args)
-    if args[1] == "true" then
-        NetEvents:Send("stick")
-        else NetEvents:Send("unstick")
+
+NetEvents:Subscribe("spectate", function()
+    if localPlayer.soldier ~= nil then
+        return
     end
+    IngameSpectator:enable()
 end)
 
-Console:Register('vision', 'hiddenvision true or false', function(args)
-    if args[1] == "true" then
-        print("set")
-        setHiddenVision()
-    else removeHiddenVision()
-    end
+NetEvents:Subscribe("unspectate", function()
+    IngameSpectator:disable()
 end)
 
-Events:Subscribe('Client:UpdateInput', function(delta)
-    if InputManager:WentKeyDown(InputDeviceKeys.IDK_O) then
-        NetEvents:Send('float')
-    elseif InputManager:WentKeyUp(InputDeviceKeys.IDK_O) then
-        NetEvents:Send('endFloat')
+
+Console:Register('Spectate', 'Toggle spectator mode', function(args)
+    if IngameSpectator:isEnabled() then
+        IngameSpectator:disable()
+        return 'Disabled in-game spectator.'
     end
+
+    local localPlayer = PlayerManager:GetLocalPlayer()
+
+    if localPlayer.soldier ~= nil then
+        return 'Cannot enable in-game spectator while alive.'
+    end
+
+    IngameSpectator:enable()
+    return 'Enabled in-game spectator.'
 end)
