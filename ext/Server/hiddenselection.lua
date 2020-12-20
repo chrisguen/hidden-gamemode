@@ -4,7 +4,6 @@ local currentHiddenPlayer
 local minPlayers = 4
 local deadPlayers
 playerDamageTable = {}
-preRound()
 
 --Dont allow Teamchanges
 Hooks:Install('Player:SelectTeam', 1, function(hook, player, team)
@@ -165,9 +164,12 @@ function preRound()
             startRound()
         end)
         --TODO: Display message in WebUi
-    else ChatManager:Yell("Waiting for players")
+    else ChatManager:Yell("Waiting for players", 10)
     end
 end
+
+preRound()
+
 
 function getHiddenPlayer()
     return currentHiddenPlayer
