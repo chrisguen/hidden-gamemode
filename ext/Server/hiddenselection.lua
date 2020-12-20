@@ -1,7 +1,7 @@
 require("__shared/roundstate")
 require("__shared/timers")
 local currentHiddenPlayer
-local minPlayers = 1
+local minPlayers = 2
 local deadPlayers = 0
 playerDamageTable = {}
 
@@ -35,6 +35,7 @@ Hooks:Install('Soldier:Damage', 1, function(hook, soldier, info, giverInfo)
     end
 end)
 
+-- Remove leaving players from damage Table and let iris win if the hidden leaves
 Events:Subscribe('Player:Left', function(player)
     for dmgPlayer, dmg in pairs(playerDamageTable) do
         if dmgPlayer == player.name then
@@ -50,6 +51,7 @@ Events:Subscribe('Player:Left', function(player)
     end
 end)
 
+--Check if player killed is the hidden, if they are, let iris win otherwise add one to deathcount
 Events:Subscribe('Player:Killed', function(player, inflictor, position, weapon, isRoadKill, isHeadShot, wasVictimInReviveState, info)
     if player.name == currentHiddenPlayer then
         irisWin()
@@ -60,11 +62,13 @@ Events:Subscribe('Player:Killed', function(player, inflictor, position, weapon, 
     end
 end)
 
+--Clear Damage Table on mapchange
 Events:Subscribe('Level:Destroy', function()
     currentHiddenPlayer = nil
     playerDamageTable = {}
 end)
 
+--Add new joining player to team IRIS
 Events:Subscribe('Player:Authenticated', function(player)
     if roundstate == RoundState.Playing then
         player.teamId = TeamId.Team2
@@ -74,14 +78,14 @@ Events:Subscribe('Player:Authenticated', function(player)
 end)
 
 
-
+--Starting round logic, select hidden player, assign teams
 function startRound()
     print("Starting new round...")
     if roundstate == RoundState.PreRound then
 
         playersOnServer = PlayerManager:GetPlayers()
 
-        local playerCount = GetPlayerCount()
+        local playerCount = PlayerManager:GetPlayerCount()
         if next(playerDamageTable) == nil then
             --empty dmgTable so make Hidden random
             currentHiddenPlayer = playersOnServer[MathUtils:GetRandomInt(1, PlayerManager:GetPlayerCount())].name
@@ -105,8 +109,8 @@ function startRound()
                 -- The player must be dead if we want to spawn him somewhere so if he is already alive...we kill him.
                 playerx.soldier:Kill()
             end
-            if player.name ~= currentHiddenPlayer then
-                player.teamId = TeamId.Team2
+            if playerx.name ~= currentHiddenPlayer then
+                playerx.teamId = TeamId.Team2
             else playerx.teamId = TeamId.Team1
                  spawnHidden(playerx)
             end
@@ -129,6 +133,7 @@ function restartRound()
     startRound()
 end
 
+--helper method for selecting hidden based on damage and chance
 function GetWeightedRandomKey( tab )
     local sum = 0
 
@@ -153,18 +158,21 @@ function endRound()
     end)
 end
 
+--gets called when team hidden wins
 function hiddenWin()
     print("Team Hidden won")
     ChatManager:Yell("The Hidden Wins!", 5)
     endRound()
 end
 
+--gets called when team IRIS wins
 function irisWin()
     print("Team I.R.I.S won")
     ChatManager:Yell("I.R.I.S Wins!", 5)
     endRound()
 end
 
+--gets called when a player joins and after a round
 function preRound()
     if PlayerManager:GetPlayerCount() >= minPlayers then
         roundstate = RoundState.PreRound
@@ -176,7 +184,7 @@ function preRound()
     else ChatManager:Yell("Waiting for players", 10)
     end
 end
-
+--call it once after reload/server start
 preRound()
 
 
@@ -184,6 +192,8 @@ function getHiddenPlayer()
     return currentHiddenPlayer
 end
 
+
+--spawn hidden soldier
 function spawnHidden(player)
     if player == nil then
         return
@@ -230,6 +240,7 @@ function spawnHidden(player)
     player.soldier:ApplyCustomization(hiderCustomization)
 end
 
+--spawn Iris soldier
 function spawnIrisSoldier(player, pos)
     local transform = LinearTransform(
             Vec3(1, 0, 0),
