@@ -1,25 +1,12 @@
 require('hiddenselection')
 require("__shared/roundstate")
 
+ServerUtils:SetCustomGameModeName("Source:Hidden")
 
 function SpawnHidden(player)
 
 end
 
-NetEvents:Subscribe('float', function(player)
-	--player.soldier.physicsEntityBase.states[1].poseInfo[1].sprintGain = 6
-end)
-
-NetEvents:Subscribe('endFloat', function(player)
-	--player.soldier.physicsEntityBase.states[1].poseInfo[1].sprintGain = 1.7
-end)
-
-NetEvents:Subscribe('stick', function(player)
-end)
-
-NetEvents:Subscribe('unstick', function(player)
-
-end)
 
 
 -- Debug commands
@@ -31,6 +18,8 @@ Events:Subscribe('Player:Chat', function(player, recipientMask, message)
 		NetEvents:BroadcastLocal('netMakeSuperSoldier')
 	elseif message == "init" then
 		roundstate = RoundState.PreRound
+	elseif message == "restart" then
+		restartRound()
 	elseif message == "heal" then
 		soldier = SoldierEntity(player.soldier)
 		soldier.health = 500

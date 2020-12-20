@@ -1,7 +1,10 @@
 require("__shared/roundstate")
+require("__shared/timers")
 local currentHiddenPlayer
+local minPlayers = 4
+local deadPlayers
 playerDamageTable = {}
-
+preRound()
 
 --Dont allow Teamchanges
 Hooks:Install('Player:SelectTeam', 1, function(hook, player, team)
@@ -41,6 +44,10 @@ Events:Subscribe('Player:Left', function(player)
     end
     if player.name == currentHiddenPlayer then
         endRound()
+    else
+        if deadPlayers ~= 0 and player.alive == false then
+            deadPlayers = deadPlayers - 1
+        end
     end
 end)
 
@@ -49,6 +56,10 @@ Events:Subscribe('Player:Killed', function(player, inflictor, position, weapon, 
         NetEvents:SendToLocal('removeHiddenVision', PlayerManager:GetPlayerByName(currentHiddenPlayer))
         ChatManager:Yell("I.R.I.S Wins!", 5)
         endRound()
+    else deadPlayers = deadPlayers + 1
+        if deadPlayers == PlayerManager:GetPlayerCount() - 1 then
+            hiddenWin()
+        end
     end
 end)
 
@@ -60,6 +71,8 @@ end)
 Events:Subscribe('Player:Authenticated', function(player)
     if roundstate == RoundState.Playing then
         player.teamId = TeamId.Team2
+    elseif roundstate == RoundState.PreRound then
+        preRound()
     end
 end)
 
@@ -99,11 +112,18 @@ function startRound()
             end
         end
         spawnHidden(PlayerManager:GetPlayerByName(currentHiddenPlayer))
-        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).maxHealth = playerCount * 150
-        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).health = 10000
         roundstate = RoundState.Playing
         NetEvents:SendToLocal('setHiddenVision', PlayerManager:GetPlayerByName(currentHiddenPlayer))
+        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).maxHealth = playerCount * 150
+        SoldierEntity(PlayerManager:GetPlayerByName(currentHiddenPlayer).soldier).health = playerCount * 150
     end
+end
+
+function restartRound()
+    roundstate = RoundState.PreRound
+    currentHiddenPlayer = nil
+    playerDamageTable = {}
+    startRound()
 end
 
 function GetWeightedRandomKey( tab )
@@ -123,6 +143,30 @@ end
 
 function endRound()
     roundstate = RoundState.PostRound
+    ChatManager:Yell("New Round will begin in 10", 4)
+    Timers:Timeout(5, function()
+        preRound()
+    end)
+end
+
+function hiddenWin()
+
+end
+
+function irisWin()
+
+end
+
+function preRound()
+    if PlayerManager:GetPlayerCount() >= minPlayers then
+        roundstate = RoundState.PreRound
+        ChatManager:Yell("The round will begin in 10 seconds.")
+        Timers:Timeout(10,function ()
+            startRound()
+        end)
+        --TODO: Display message in WebUi
+    else ChatManager:Yell("Waiting for players")
+    end
 end
 
 function getHiddenPlayer()
